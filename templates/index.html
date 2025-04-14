@@ -1,0 +1,70 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lung X-ray Classifier</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
+      background-color: #f9f9f9;
+    }
+    img {
+      max-width: 300px;
+      margin-top: 20px;
+    }
+    .result {
+      font-size: 18px;
+      margin-top: 20px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>Upload Lung X-ray Image</h1>
+  <input type="file" id="fileInput" />
+  <button onclick="upload()">Predict</button>
+
+  <div id="preview"></div>
+  <div class="result" id="result"></div>
+
+  <script>
+    function upload() {
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert('Please select an image');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      fetch('/predict', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('result').innerText = 
+          "Prediction: " + data.prediction[0][0].toFixed(4);
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Prediction failed");
+      });
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('preview').innerHTML = 
+          `<img src="${e.target.result}" alt="X-ray Image" />`;
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
