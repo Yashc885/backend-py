@@ -14,10 +14,10 @@ model = load_model('xray_model.h5')
 
 def preprocess(img):
     # Resize the image to 64x64
-    img = img.resize((64, 64))  # Resize to (224, 224)
-    img = np.array(img) / 255.0   # Normalize the image
-    img = img.flatten()           # Flatten the image to match the input shape expected by the model
-    return np.expand_dims(img, axis=0)  # Add an extra dimension for batch size
+    img = img.resize((64, 64))  # Resize to (64, 64)
+    img = np.array(img) / 255.0  # Normalize the image
+    img = np.expand_dims(img, axis=0)  # Add batch dimension, shape becomes (1, 64, 64, 3)
+    return img
 
 @app.route('/')
 def index():
@@ -30,11 +30,13 @@ def predict():
 
     file = request.files['file']
     img = Image.open(io.BytesIO(file.read())).convert('RGB')  # Read and convert image to RGB
-    processed = preprocess(img)  # Preprocess the image (resize and flatten)
-    prediction = model.predict(processed)  # Get the prediction
+    processed = preprocess(img)  # Preprocess the image (resize and normalize)
+    
+    # Get the prediction
+    prediction = model.predict(processed)
     
     # Assuming it's a classification task
-    return jsonify({'prediction': prediction.tolist()})  # Return the prediction as list
+    return jsonify({'prediction': prediction.tolist()})  # Return the prediction as a list
 
 if __name__ == '__main__':
     app.run(debug=True)
